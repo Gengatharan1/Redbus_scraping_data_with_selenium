@@ -13,7 +13,7 @@ def get_base64_of_bin_file(bin_file):
     return base64.b64encode(data).decode()
 
 # Path to your image
-background_image_path = r'C:\IT\github\redbus_scraping_filtering\bgimgg.jpg'
+background_image_path = 'bgimgg.jpg'
 
 # Convert the image to base64
 base64_image = get_base64_of_bin_file(background_image_path)
@@ -51,7 +51,8 @@ st.markdown(page_bg_img, unsafe_allow_html=True)
 
 st.markdown("<h1 style='font-size:30px; color:Red;text-align:center;'>Redbus Data Scraping using Selenium Webdriver, Storing in SQL and accessing through Streamlit</h1>", unsafe_allow_html=True)
 
-# about the Developer
+# About the Developer
+
 def about_the_developer():
     st.header("About the Developer")
     st.image("coder.jpg", caption="Gengatharan L", width=250)
