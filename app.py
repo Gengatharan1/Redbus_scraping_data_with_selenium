@@ -3,20 +3,22 @@ import pandas as pd
 import mysql.connector
 import streamlit as st
 import base64
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # Corrected import
 
 # Load environment variables from a .env file
 load_dotenv()
 
-# encode binary file into string format
+# Function to encode binary file into base64 string format
 def get_base64_of_bin_file(bin_file):
     with open(bin_file, 'rb') as f:
         data = f.read()
     return base64.b64encode(data).decode()
 
+# Function to load data from a CSV file
 def load_data(filepath):
     return pd.read_csv(filepath)
 
+# Function to connect to MySQL database
 def connect_mysql():
     try:
         conn = mysql.connector.connect(
@@ -30,12 +32,13 @@ def connect_mysql():
         st.error("Error connecting to the database.")
         return None
 
-# Path to the image
+# Path to the background image
 background_image_path = 'img/bg_img.jpg'
 
 # Convert the image to base64
 base64_image = get_base64_of_bin_file(background_image_path)
 
+# Set the background image in Streamlit
 page_bg_img = f"""
 <style>
 [data-testid="stAppViewContainer"] {{
@@ -47,7 +50,6 @@ page_bg_img = f"""
 </style>
 """
 
-# Inject CSS with markdown
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # App Title
@@ -57,18 +59,20 @@ st.markdown("<h1 style='font-size:36px; color:White;text-align:center;'>Redbus D
 st.sidebar.header("Navigation Menu")
 menu_option = st.sidebar.radio("Choose a page:", ["Home", "Project"])
 
+# Function to display "About the Developer" section
 def about_the_developer():
     st.header("About the Developer")
     st.write("Name : Gengatharan L | Role : Fresher")
     st.write("""
     I am a passionate and driven individual eager to kickstart my career in data science. 
     With a strong foundation in statistics, programming, and data analysis, I am continuously 
-    honing my skills in data visualization, machine learning, deep learning and AI etc. 
+    honing my skills in data visualization, machine learning, deep learning, and AI. 
     My goal is to leverage data to solve real-world problems and contribute to impactful projects.
     """)
     st.subheader("Contact Details")
     st.write("[LinkedIn](https://www.linkedin.com/in/gengatharan007/) | [GitHub](https://github.com/Gengatharan1) | Email: gengatharan.ds@gmail.com")
 
+# Function to display "Skills Take Away From This Project" section
 def skills_take_away():
     st.subheader("Skills Take Away From This Project")
     skills = [
@@ -82,15 +86,17 @@ def skills_take_away():
     for skill in skills:
         st.write(f"- {skill}")
 
+# Function to display "Objective" section
 def objective():
     st.subheader("Objective")
     st.write("Redbus Data Scraping with Selenium & Dynamic Filtering using Streamlit")
 
+# Function to display "Prerequisites" section
 def prerequisites():
     st.subheader("Prerequisites")
     prerequisites_list = [
         "Python Environment: Install Python on your system",
-        "Selenium driver - Chrome",
+        "Selenium - Chrome driver",
         "Dependencies: Install Streamlit, Pandas, Selenium, mysql_connector",
         "SQL Database: Set up MySQL database with local machine login credentials",
         "Streamlit: Install Streamlit library for running the application"
@@ -98,11 +104,13 @@ def prerequisites():
     for item in prerequisites_list:
         st.write(f"- {item}")
 
+# Function to display "Required Python Libraries" section
 def required_python_libraries():
     st.subheader("Required Python Libraries")
     libraries = ["Selenium", "pandas", "streamlit", "mysql.connector", "datetime", "re"]
     st.write(", ".join(libraries))
 
+# Function to display "Approach" section
 def approach():
     st.subheader("Approach")
     steps = [
@@ -115,6 +123,7 @@ def approach():
     for step in steps:
         st.write(f"- {step}")
 
+# Function to execute and display the result of a SQL query
 def execute_query(cursor, query):
     try:
         cursor.execute(query)
@@ -126,6 +135,7 @@ def execute_query(cursor, query):
     except Exception as e:
         st.error("Error fetching data.")
 
+# Home page navigation
 if menu_option == "Home":
     st.sidebar.subheader("Content")
     options = ["About the Developer", "Skills Take Away From This Project", "Objective", "Prerequisites", "Required Python Libraries", "Approach"]
@@ -144,6 +154,7 @@ if menu_option == "Home":
     elif choice == "Approach":
         approach()
 
+# Project page navigation
 if menu_option == "Project":
     st.subheader("Bus Data Filtering")
 
