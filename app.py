@@ -1,12 +1,12 @@
-import os
 import pandas as pd
 import mysql.connector
 import streamlit as st
 import base64
-from dotenv import load_dotenv  # Corrected import
+import os
+from dotenv import load_dotenv, find_dotenv, dotenv_values
 
-# Load environment variables from a .env file
-load_dotenv()
+load_dotenv(find_dotenv(os))
+print(os.getenv("my_key"))
 
 # Function to encode binary file into base64 string format
 def get_base64_of_bin_file(bin_file):
@@ -22,10 +22,10 @@ def load_data(filepath):
 def connect_mysql():
     try:
         conn = mysql.connector.connect(
-            host=os.getenv("DB_HOST"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            database=os.getenv("DB_NAME")
+            host=os.getenv("host_name"),
+            user=os.getenv("user_name"),
+            password=os.getenv("pwd_key"),
+            database=os.getenv("db_name")
         )
         return conn
     except Exception as e:
