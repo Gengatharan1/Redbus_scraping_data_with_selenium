@@ -3,16 +3,17 @@ import mysql.connector
 import streamlit as st
 import base64
 import os
-from dotenv import load_dotenv, find_dotenv, dotenv_values
+from dotenv import load_dotenv, dotenv_values
 
-load_dotenv(find_dotenv(os))
-print(os.getenv("my_key"))
+# Load environment variables
+load_dotenv(dotenv_path='.env')
 
-# Function to encode binary file into base64 string format
-def get_base64_of_bin_file(bin_file):
-    with open(bin_file, 'rb') as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
+config={
+    **dotenv_values(".env_shared"),
+    **dotenv_values(".env_secret"),
+    # **os.environ
+}
+print(config)
 
 # Function to load data from a CSV file
 def load_data(filepath):
@@ -32,11 +33,24 @@ def connect_mysql():
         st.error("Error connecting to the database.")
         return None
 
-# Path to the background image
-background_image_path = 'img/bg_img.jpg'
+# Ensure the path is correct
+current_dir = os.path.dirname(os.path.abspath(__file__))
+background_image_path = os.path.join(current_dir, './image/bg_img.jpg')
 
-# Convert the image to base64
-base64_image = get_base64_of_bin_file(background_image_path)
+base64_image = ''
+
+# Check if the file exists
+if not os.path.exists(background_image_path):
+    st.error(f"File not found: {background_image_path}")
+else:
+    # Convert the image to base64
+    def get_base64_of_bin_file(bin_file):
+        with open(bin_file, 'rb') as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+
+    # Convert the image to base64
+    base64_image = get_base64_of_bin_file(background_image_path)
 
 # Set the background image in Streamlit
 page_bg_img = f"""
@@ -53,7 +67,7 @@ page_bg_img = f"""
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
 # App Title
-st.markdown("<h1 style='font-size:36px; color:White;text-align:center;'>Redbus Dashboard</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='font-size:36px; color:Red;text-align:center;'>Redbus Dashboard</h1>", unsafe_allow_html=True)
 
 # Sidebar Navigation
 st.sidebar.header("Navigation Menu")
@@ -124,9 +138,9 @@ def approach():
         st.write(f"- {step}")
 
 # Function to execute and display the result of a SQL query
-def execute_query(cursor, query):
+def execute_query(cursor, query, params=None):
     try:
-        cursor.execute(query)
+        cursor.execute(query, params)
         results = cursor.fetchall()
         df = pd.DataFrame(results, columns=["Bus_name", "Bus_type", "Start_time", "End_time", "Total_duration",
                                             "Price", "Seats_Available", "Ratings", "Route_name", "Origin", "Destination"])
@@ -162,6 +176,8 @@ if menu_option == "Project":
     df = load_data("final_data.csv")
     df_origin = load_data("origin.csv")
     df_destination = load_data("destination.csv")
+    print("Columns in df_destination:", df_destination.columns)
+    print(df_destination.head())
 
     origin_set = df_origin['Origin'].unique().tolist()
     destination_set = df_destination['Destination'].unique().tolist()
@@ -180,27 +196,27 @@ if menu_option == "Project":
 
         with col1:
             if st.button("Apply Price Sort"):
-                query = f"""
+                query = """
                 SELECT * FROM bus_routes
-                WHERE Price BETWEEN {range_values[0]} AND {range_values[1]}
+                WHERE Price BETWEEN %s AND %s
                 ORDER BY Price DESC
                 """
-                execute_query(my_cursor, query)
+                execute_query(my_cursor, query, (range_values[0], range_values[1]))
 
         with col2:
             if st.button("Apply Route Sort"):
-                query = f"""
+                query = """
                 SELECT * FROM bus_routes
-                WHERE Origin = '{origin}' AND Destination = '{destination}'
+                WHERE Origin = %s AND Destination = %s
                 """
-                execute_query(my_cursor, query)
+                execute_query(my_cursor, query, (origin, destination))
 
         with col3:
             if st.button("Apply Both Route and Price Sort"):
-                query = f"""
+                query = """
                 SELECT * FROM bus_routes
-                WHERE Origin = '{origin}' AND Destination = '{destination}' 
-                AND Price BETWEEN {range_values[0]} AND {range_values[1]}
+                WHERE Origin = %s AND Destination = %s 
+                AND Price BETWEEN %s AND %s
                 ORDER BY Price DESC
                 """
-                execute_query(my_cursor, query)
+                execute_query(my_cursor, query, (origin, destination, range_values[0], range_values[1]))
