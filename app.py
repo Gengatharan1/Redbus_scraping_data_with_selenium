@@ -182,7 +182,7 @@ if menu_option == "Project":
     origin_set = df_origin['Origin'].unique().tolist()
     destination_set = df_destination['Destination'].unique().tolist()
 
-    range_values = st.slider("Select a range of values:", min_value=0, max_value=15000, value=(0, 15000))
+    range_values = st.slider("Select a range of values:", min_value=50, max_value=15000, value=(0, 15000))
     st.write(f"You selected a range: {range_values}")
 
     origin = st.selectbox("Choose From", ['All'] + origin_set)
