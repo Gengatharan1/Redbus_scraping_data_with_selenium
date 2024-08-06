@@ -151,7 +151,7 @@ if menu_option == "Project":
     st.subheader("Bus Data Filtering")
 
     # Load data
-    df = load_data("final_data.csv")
+    df = load_data("final_bus_data.csv")
 
     # Create select boxes for origin and destination
     origin_set = df['Origin'].unique().tolist()
