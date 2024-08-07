@@ -163,7 +163,15 @@ if menu_option == "Project":
 
     TIME = st.time_input("Select the Time")
 
-    # Convert fare range selection to numerical bounds
+    # sort based on bus type
+    if select_type == "sleeper":
+        bus_type_condition = "Bus_type LIKE '%Sleeper%'"
+    elif select_type == "semi-sleeper":
+        bus_type_condition = "Bus_type LIKE '%A/c Semi Sleeper %'"
+    else:
+        bus_type_condition = "Bus_type NOT LIKE '%Sleeper%' AND Bus_type NOT LIKE '%Semi-Sleeper%'"
+
+    # sort based on bus fare
     if select_fare == "50-1000":
         fare_min, fare_max = 50, 1000
     elif select_fare == "1000-2000":
@@ -171,12 +179,12 @@ if menu_option == "Project":
     else:
         fare_min, fare_max = 2000, 15000
 
-    # Filter the DataFrame based on user selection
-    df['Start_time'] = pd.to_datetime(df['Start_time'], format='%H:%M').dt.time  # Convert Start_time to time format
+    # Convert Start_time to time format
+    df['Start_time'] = pd.to_datetime(df['Start_time'], format='%H:%M').dt.time
 
     filtered_df = df[(df['Origin'] == origin) &
                      (df['Destination'] == destination) &
-                     (df['Bus_type'].str.lower() == select_type.lower()) &
+                     (df['Bus_type'] == select_type) &
                      (df['Price'].between(fare_min, fare_max)) &
                      (df['Start_time'] == TIME)]
 
