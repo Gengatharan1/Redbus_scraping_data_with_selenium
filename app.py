@@ -4,11 +4,10 @@ import streamlit as st
 import os
 from dotenv import load_dotenv, dotenv_values
 
-
-# Load environment variables
+# Load environment variables from .env and .env_shared/.env_secret
 load_dotenv(dotenv_path='.env')
 
-config={
+config = {
     **dotenv_values(".env_shared"),
     **dotenv_values(".env_secret")
 }
@@ -31,7 +30,7 @@ def connect_mysql():
         )
         return conn
     except Exception as e:
-        st.error("Error connecting to the database.")
+        st.error(f"Error connecting to the database: {e}")
         return None
 
 
@@ -44,7 +43,6 @@ st.sidebar.header("Navigation Menu")
 menu_option = st.sidebar.radio("Choose a page:", ["Home", "Project"])
 
 
-# Function to display "About the Developer" section
 def about_the_developer():
     st.header("About Myself")
     st.write("Name : Gengatharan L | Role : Fresher")
@@ -58,7 +56,6 @@ def about_the_developer():
     st.write("[LinkedIn](https://www.linkedin.com/in/gengatharan007/) | [GitHub](https://github.com/Gengatharan1) | Email: gengatharan.ds@gmail.com")
 
 
-# Function to display "Skills Take Away From This Project"
 def skills_takeaway():
     st.subheader("Skills Takeaway")
     skills = [
@@ -73,13 +70,11 @@ def skills_takeaway():
         st.write(f"- {skill}")
 
 
-# Function to display "Objective" of the project
 def objective():
     st.subheader("Main Objective")
     st.write("Redbus Data Scraping with Selenium & Dynamic Filtering using Streamlit")
 
 
-# Function to display "Prerequisites" to follow-up while creating a web application
 def prerequisites():
     st.subheader("Prerequisites")
     prerequisites_list = [
@@ -93,14 +88,12 @@ def prerequisites():
         st.write(f"- {item}")
 
 
-# Function to display "Required Python Libraries" for this project
 def required_python_libraries():
     st.subheader("Required Python Libraries")
     libraries = ["Selenium", "pandas", "numpy", "mysql.connector", "streamlit", "datetime"]
     st.write(", ".join(libraries))
 
 
-# Function to display "Approach" section
 def approach():
     st.subheader("Approach")
     steps = [
@@ -121,10 +114,10 @@ def execute_query(cursor, query, params=None):
         results = cursor.fetchall()
         df = pd.DataFrame(results, columns=["Bus_name", "Bus_type", "Start_time", "End_time", "Total_duration",
                                             "Price", "Seats_Available", "Ratings", "Route_name", "Origin", "Destination"])
-        st.write(df)
-        st.write(f"Number of records: {len(df)}")
+        return df
     except Exception as e:
-        st.error("Error fetching data.")
+        st.error(f"Error fetching data: {e}")
+        return pd.DataFrame()
 
 
 # Home page navigation
@@ -145,6 +138,7 @@ if menu_option == "Home":
         required_python_libraries()
     elif choice == "Approach":
         approach()
+
 
 # Project page navigation
 if menu_option == "Project":
@@ -178,25 +172,33 @@ if menu_option == "Project":
         fare_min, fare_max = 2000, 15000
 
     # Filter the DataFrame based on user selection
+    df['Start_time'] = pd.to_datetime(df['Start_time'], format='%H:%M').dt.time  # Convert Start_time to time format
+
     filtered_df = df[(df['Origin'] == origin) &
                      (df['Destination'] == destination) &
                      (df['Bus_type'].str.lower() == select_type.lower()) &
-                     (df['Price'].between(fare_min, fare_max))]
+                     (df['Price'].between(fare_min, fare_max)) &
+                     (df['Start_time'] == TIME)]
 
-    # Convert Start_time column to datetime to match the selected time
-    try:
-        df['Start_time'] = pd.to_datetime(df['Start_time'], format='%H:%M').dt.time
-    except ValueError:
-        st.error("Time format in the data does not match expected format '%H:%M'. Please check the data format.")
+    # Sort the results by price and bus type
+    filtered_df = filtered_df.sort_values(by=['Bus_type', 'Price'])
 
-    filtered_df = filtered_df[filtered_df['Start_time'] == TIME]
+    # Display filtered bus data
+    st.subheader("Filtered Bus Data")
+    st.write(filtered_df)
 
-    # Sort the results by price
-    filtered_df = filtered_df.sort_values(by='Price')
-
-    # Display the filtered and sorted data
-    if not filtered_df.empty:
-        st.write(filtered_df)
-        st.write(f"Number of records: {len(filtered_df)}")
-    else:
-        st.warning("No results found for the selected criteria.")
+    # Connect to MySQL and fetch data
+    conn = connect_mysql()
+    if conn:
+        cursor = conn.cursor()
+        sql_query = "SELECT * FROM bus_routes"
+        df = execute_query(cursor, sql_query)
+        cursor.close()
+        conn.close()
+        
+        # Display the SQL data
+        if not df.empty:
+            st.write(df)
+            st.write(f"Number of records: {len(df)}")
+        else:
+            st.warning("No data available from the SQL database.")
