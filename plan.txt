@@ -1,0 +1,43 @@
+main 10 states
+
+states 10 * 10
+
+routes 50 * 30 * 10
+
+govt
+
+private
+
+------
+go to redBus webpage
+
+Data Scraping:
+
+get links to govt buses available in states
+save state csv and table
+
+get route links of those states on all pages
+save routes csv and table
+
+get private bus details of all routes on all pages
+get govt bus details of those routes in all state bus sections
+save bus csv and table
+-------------
+
+Data Cleaning:
+
+Remove the null and duplicate values, replace outlier from the scraped data
+
+
+Data Management:
+
+Store the data in SQL database with the help of mysql workbench.
+
+
+Data Analysis and Visualization:
+
+By using SQL queries to retrieve the data in streamlit
+
+Filter data based on bus type and price range
+
+
