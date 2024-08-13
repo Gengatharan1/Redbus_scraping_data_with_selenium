@@ -1,3 +1,6 @@
+python
 mysql-connector-python
-streamlit
+sqlalchemy
 pandas
+numpy
+streamlit
