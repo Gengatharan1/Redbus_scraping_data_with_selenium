@@ -2,8 +2,6 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from sqlalchemy import text
 import pandas as pd
-import altair as alt
-import numpy as np
 
 def bus_count_plot(col, df, index, title):
     col.markdown(f"### {title}")
@@ -43,7 +41,6 @@ def select_one(items, label):
 
     # if not selected_item:
         # st.error("Please select a value.")
-    
     # else:
     #     selected_items = [item for item in items if items['value'] in selected_items]
     

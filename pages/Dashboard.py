@@ -3,7 +3,7 @@ import streamlit as st
 from pathlib import Path
 from utils.sql import sql, States, Routes, Buses
 from utils.components import (
-    bus_count_plot, pie_plot, bus_type_plot, bus_time_plot, avg_plot,
+    bus_count_plot, bus_type_plot, bus_time_plot, avg_plot,
     select_multiple, select_one
 )
 from sqlalchemy import text
@@ -27,6 +27,7 @@ sql_query = f'''
     FROM buses left join routes 
     on buses.route_name = routes.route_name
     '''
+
 stmt = text(sql_query)
 with engine.connect() as connection: res = connection.execute(stmt)
 df_all = pd.DataFrame(res.fetchall(), columns=res.keys()) 
@@ -45,6 +46,7 @@ selected_rating = select_one(range(6), 'Select minimum rating')
 selected_price = st.text_input('Select maximum price', value="")
 # # departure time
 # selected_time = select_one(df_all['state'].unique(), 'Select departure time')
+
 
 # operator
 
@@ -66,16 +68,21 @@ sql_query_all = f'''
     '''
 
 normal_filters = []
+# orders = []
+
 if selected_states:
     normal_filters.append(f" AND routes.state IN ('{"', '".join(selected_states)}')")
 if selected_routes:
     normal_filters.append(f" AND buses.route_name IN ('{"', '".join(selected_routes)}')")
 if selected_seats:
     normal_filters.append(f" AND buses.seat_available >= {selected_seats}")
+    # orders.append('buses.seat_available DESC')
 if selected_rating:
     normal_filters.append(f" AND buses.star_rate >= {selected_rating}")
+    # orders.append('buses.rating DESC')
 if selected_price:
     normal_filters.append(f" AND buses.price <= {selected_price}")
+    # orders.append('buses.seat_available')
 if selected_sleeper and not selected_non_sleeper:
     normal_filters.append(f" AND LOWER(buses.bus_type) LIKE '%sleeper%'")
 if selected_non_sleeper and not selected_sleeper:
@@ -85,9 +92,7 @@ if selected_ac and not selected_non_ac:
 if selected_non_ac and not selected_ac:
     normal_filters.append(f" AND buses.bus_type LIKE '%NON AC%'")
 
-sql_query_normal = sql_query_all + ''.join(normal_filters)
-sql_query_bus_type = sql_query_all + ''.join(normal_filters)
-sql_query_filter = sql_query_bus_type
+sql_query_filter = sql_query_all + ''.join(normal_filters)
 
 stmt = text(sql_query_filter)
 with engine.connect() as connection: res = connection.execute(stmt)

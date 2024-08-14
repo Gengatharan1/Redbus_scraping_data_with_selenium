@@ -16,7 +16,7 @@ port = os.environ.get('sql_db_endpoint')
 database = os.environ.get('sql_db_dbname')
 
 
-# postgre
+# postgresql
 db_url = f'postgresql+psycopg2://{username}:{password}@{hostname}:{port}/{database}'
 
 
@@ -65,7 +65,8 @@ class Buses(Base):
 
 
 def sql():
-
+    print(db_url)
+    
     # Create the tables in the database
     Base.metadata.create_all(engine)
 

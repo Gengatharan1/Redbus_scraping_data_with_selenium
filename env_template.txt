@@ -1,0 +1,6 @@
+# sql database creds
+
+sql_db_usr=postgres
+sql_db_pwd=postgres
+sql_db_endpoint=5432
+sql_db_dbname=postgres
