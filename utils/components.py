@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from sqlalchemy import text
 import pandas as pd
 
+
 def bus_count_plot(col, df, index, title):
     col.markdown(f"### {title}")
     df_bus_count = df.groupby(index)['bus_id'].nunique().reset_index()
