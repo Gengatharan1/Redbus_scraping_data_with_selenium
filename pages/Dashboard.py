@@ -13,7 +13,7 @@ session, engine = sql()
 
 st.set_page_config(
     page_title="Redbus Analysis",
-    layout="wide"  # This sets the layout to be wide
+    layout="wide"
 )
 
 

@@ -42,6 +42,10 @@ Install all necessary packages
 ``` 
 pip install -r requirements.txt
 ```
+To Avoiding the ModuleNotFoundError, If utils is missing an __init__.py file, create one:
+``` 
+touch utils/__init__.py
+```
 
 ### Environment_variables
 Creating ```.env``` file using template
@@ -62,7 +66,7 @@ streamlit run Intro.py
 
 
 ## Workflow
-[Slides]()
+[Slides](https://docs.google.com/presentation/d/16UceFjcFdSviX3FvEB9mInjUgLwBWEhL1dvOh8HB2zA)
 
 
 ## Contact

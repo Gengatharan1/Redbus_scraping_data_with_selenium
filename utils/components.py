@@ -2,32 +2,18 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from sqlalchemy import text
 import pandas as pd
-
-
-def bus_count_plot(col, df, index, title):
-    col.markdown(f"### {title}")
-    df_bus_count = df.groupby(index)['bus_id'].nunique().reset_index()
-    # col.write(df_bus_count)
-    col.bar_chart(df_bus_count.set_index(index))
-
-
-def pie_plot(col, df, label, value, title):
-    col.markdown(f'### {title}')
-    df = df.groupby(label)[value].nunique().reset_index()
-    fig, ax = plt.subplots()
-    ax.pie(df[value], labels=df['label'], autopct='%1.1f%%', startangle=90)
-    ax.axis('equal')  # Equal aspect ratio ensures the pie is drawn as a circle.
-    col.pyplot(fig)
+import altair as alt
 
 
 def select_multiple(items, label):
     selected_items = st.multiselect(
         label = label, 
-        options = items
+        options = items,
     )
 
     # if not selected_items:
     #     st.error("Please select at least one item.")
+    
     # else:
     #     selected_items = [item for item in items if items['value'] in selected_items]
     
@@ -42,10 +28,44 @@ def select_one(items, label):
 
     # if not selected_item:
         # st.error("Please select a value.")
+    
     # else:
     #     selected_items = [item for item in items if items['value'] in selected_items]
     
     return selected_item
+
+
+def bus_count_plot(col, engine, query_filter, index, title):
+    col.markdown(f"### {title}")
+    sql_query_type_analysis = '''
+        WITH pre_table AS (
+        ''' + query_filter + f''' )
+        SELECT 
+            {index},
+            COUNT(DISTINCT bus_id) AS count,
+            pre_table.operator
+        FROM 
+            pre_table
+        GROUP BY 
+            {index}, operator;
+    '''
+    stmt = text(sql_query_type_analysis)
+    with engine.connect() as connection: res = connection.execute(stmt)
+    df = pd.DataFrame(res.fetchall(), columns=res.keys())
+    
+    # col.bar_chart(df.set_index(index))
+
+    chart = alt.Chart(df).mark_bar().encode(
+        x=f'{index}:N',
+        y='count:Q',
+        color='operator:N',
+        column='operator:N',
+        tooltip=[f'{index}:N', 'operator:N', 'operator:N', 'count:Q']
+    ).properties(
+        width=450,
+        height=300
+    ).interactive()
+    col.altair_chart(chart)
 
 
 def bus_type_plot(col, engine, query_filter, title):
@@ -58,31 +78,37 @@ def bus_type_plot(col, engine, query_filter, title):
             CASE
                 WHEN LOWER(pre_table.bus_type) LIKE '%sleeper%' 
                     THEN 'Sleeper'
-                WHEN LOWER(pre_table.bus_type) NOT LIKE '%sleeper%' 
-                    THEN 'Non Sleeper'
+                ELSE 'Non Sleeper'
             END AS sleeper,
             CASE
                 WHEN pre_table.bus_type LIKE '%AC%' AND pre_table.bus_type NOT LIKE '%NON AC%'
                     THEN 'AC'
-                WHEN pre_table.bus_type LIKE '%NON AC%' 
-                    THEN 'Non AC'
+                ELSE 'Non AC'
             END AS ac,
-
-            COUNT(*) AS value
+            pre_table.operator,
+            COUNT(*) AS count
         FROM pre_table
-        GROUP BY sleeper, ac;
+        GROUP BY sleeper, ac, pre_table.operator
+        ;
     '''
     stmt = text(sql_query_type_analysis)
     with engine.connect() as connection: res = connection.execute(stmt)
     df_type_analysis = pd.DataFrame(res.fetchall(), columns=res.keys()) 
     # col.write(df_type_analysis)
 
-    df_pivot = df_type_analysis.pivot(index='sleeper', columns='ac', values='value').fillna(0)
-    fig, ax = plt.subplots()
-    df_pivot.plot(kind='bar', stacked=True, ax=ax)
-    ax.set_ylabel('count')
-    ax.set_title('Price by Type and AC Status')
-    col.pyplot(fig)
+
+    # Create the chart
+    chart = alt.Chart(df_type_analysis).mark_bar().encode(
+        x='sleeper:N',
+        y='count:Q',
+        color='ac:N',
+        column='operator:N',
+        tooltip=['sleeper:N', 'ac:N', 'operator:N', 'count:Q']
+    ).properties(
+        width=500,
+        # height=300
+    ).interactive()
+    col.altair_chart(chart)
 
 
 def bus_time_plot(col, engine, query_filter, title):
@@ -101,7 +127,7 @@ def bus_time_plot(col, engine, query_filter, title):
             END AS time_bin,
             COUNT(bus_id) AS bus_count
         FROM 
-            buses
+            pre_table
         GROUP BY 
             time_bin;
     '''
@@ -137,3 +163,12 @@ def avg_plot(col, engine, query_filter, level, value, title):
     # col.write(df_time_analysis)
 
     col.bar_chart(df_time_analysis[f'avg_{value}'])
+
+
+def pie_plot(col, df, label, value, title):
+    col.markdown(f'### {title}')
+    df = df.groupby(label)[value].nunique().reset_index()
+    fig, ax = plt.subplots()
+    ax.pie(df[value], labels=df['label'], autopct='%1.1f%%', startangle=90)
+    ax.axis('equal')  # Equal aspect ratio ensures the pie is drawn as a circle.
+    col.pyplot(fig)
